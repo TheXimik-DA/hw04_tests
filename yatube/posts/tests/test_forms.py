@@ -1,8 +1,8 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from ..models import Post, Group, User
 from ..forms import PostForm
+from ..models import Group, Post, User
 
 
 class PostCreateFormTests(TestCase):
@@ -43,7 +43,7 @@ class PostCreateFormTests(TestCase):
         )
         new_posts = Post.objects.exclude(
             id__contains=old_posts).values('text', 'group', 'author')
-        self.assertEqual(Post.objects.count(), post_count + 1)    
+        self.assertEqual(Post.objects.count(), post_count + 1)
         self.assertRedirects(response, reverse('posts:profile', kwargs={
             'username': self.author}))
         self.assertEqual(new_posts.count(), 1)
