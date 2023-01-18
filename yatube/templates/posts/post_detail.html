@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}
+  Пост {{ posts|truncatechars:30 }}
+{% endblock title %}
+{% block content %}
+  <div class="container py-5">
+    <div class="row">
+      <aside class="col-12 col-md-2">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <center>
+              <b>Дата публикации:</b>
+            </center>
+            <center>
+              {{ posts.pub_date|date:"d E Y" }}
+            </center>
+          </li>
+          {% if posts.group %}
+            <li class="list-group-item">
+              <center>
+                <b>Группа: </b>
+                {{ posts.group.title }}
+                <a href="{% url 'posts:group_list' posts.group.slug %}"><center><span style="color:red">Все записи группы</span></center></a>
+              </center>
+          {% endif %}
+        </li>
+        <li class="list-group-item">
+          <center>
+            <b>Автор: </b>
+          </center>
+          <center>
+            {{ posts.author.get_full_name }}:
+            {{ posts.author.username }}
+          </center>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <center>
+            <b>Всего постов автора:
+              {{ posts.author.posts.count }}</b>
+          </center>
+          {{ post_number }}
+        </li>
+        <center>
+          <li class="list-group-item">
+            <a href="{% url 'posts:profile' posts.author.username %}"><span style="color:red">Все посты пользователя</span></a>
+          </center>
+        </li>
+      </ul>
+    </aside>
+    <article class="col-12 col-md-8">
+      <p>{{ posts.text }}</p>
+      {% if post.author == request.user %}
+        <a class="btn btn-primary" href="{% url 'posts:post_edit' post.id %}">
+          Редактировать запись
+        </a>
+      {% endif %}
+    </article>
+  </div>
+  </div>
+{% endblock content %}
