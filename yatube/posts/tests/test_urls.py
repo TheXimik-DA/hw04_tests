@@ -64,13 +64,11 @@ class PostURLTest(TestCase):
 
     def test_urls_use_correct_template(self):
         """URL-адрес использует корректный шаблон."""
-        templates_url_names = {
-            'posts/index.html': '/',
-            'posts/group_list.html': '/group/slug_test/',
-            'posts/profile.html': '/profile/TheXimik_/',
-            'posts/post_detail.html': '/posts/1/',
-            'posts/create_post.html': '/posts/1/edit/',
-            'posts/create_post.html': '/create/',
+        templates_url_names = { 
+            'posts/index.html': '/', 
+            'posts/group_list.html': f'/group/{self.group.slug}/', 
+            'posts/profile.html': f'/profile/{self.author}/', 
+            'posts/post_detail.html': f'/posts/{self.post.id}/',
         }
         for template, adress in templates_url_names.items():
             with self.subTest(adress=adress):

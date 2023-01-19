@@ -76,6 +76,7 @@ class PostCreateFormTests(TestCase):
                 group=self.grouptwo,
             ).exists()
         )
+
     def test_guest_can_not_create_new_post(self):
         """При попытке создать новую запись неавторизованный клиент
         перенаправляется на страницу авторизации a запись не производится.
