@@ -1,16 +1,15 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from ..forms import PostForm
 from ..models import Group, Post, User
-
+from django.contrib.auth.models import User
 
 class PostCreateFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.authorized_author = Client()
-        cls.author = User.objects.create(username='tigr')
+        cls.author = User.objects.create_user(username='tigr')
         cls.authorized_author.force_login(cls.author)
         cls.group = Group.objects.create(
             title='Тестовая группа',
@@ -26,7 +25,9 @@ class PostCreateFormTests(TestCase):
             author=cls.author,
             text='Тестовый пост',
         )
-        cls.form = PostForm()
+
+    def setUp(self):
+        self.nonauthorized_client = Client()
 
     def test_create_post(self):
         """Валидная форма создает запись в post."""
@@ -74,3 +75,18 @@ class PostCreateFormTests(TestCase):
                 group=self.grouptwo,
             ).exists()
         )
+    def test_guest_can_not_create_new_post(self):
+        """При попытке создать новую запись неавторизованный клиент
+        перенаправляется на страницу авторизации a запись не производится.
+        """
+        posts_count = Post.objects.count()
+        form_data = {
+            'text': 'Измененный текст',
+            'group': self.grouptwo.pk,
+        }
+        response = self.nonauthorized_client.post(
+            reverse('posts:post_create'),
+            data=form_data,
+            follow=True)
+        self.assertRedirects(response, '/auth/login/?next=/create/')
+        self.assertEqual(posts_count, Post.objects.count())
