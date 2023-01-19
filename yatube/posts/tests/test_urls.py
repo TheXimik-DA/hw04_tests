@@ -65,9 +65,9 @@ class PostURLTest(TestCase):
     def test_urls_use_correct_template(self):
         """URL-адрес использует корректный шаблон."""
         templates_url_names = { 
-            'posts/index.html': '/', 
-            'posts/group_list.html': f'/group/{self.group.slug}/', 
-            'posts/profile.html': f'/profile/{self.author}/', 
+            'posts/index.html': '/',
+            'posts/group_list.html': f'/group/{self.group.slug}/',
+            'posts/profile.html': f'/profile/{self.author}/',
             'posts/post_detail.html': f'/posts/{self.post.id}/',
         }
         for template, adress in templates_url_names.items():
