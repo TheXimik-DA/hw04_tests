@@ -47,11 +47,15 @@
         </li>
       </ul>
     </aside>
-    <article class="col-12 col-md-8">
-      <p>{{ posts.text }}</p>
-      {% if post.author == request.user %}
-        <a class="btn btn-primary" href="{% url 'posts:post_edit' post.id %}">
-          Редактировать запись
+    <article class="col-12 col-md-9">
+      <p>
+        <h5>{{ posts.text }}</h5>
+      </p>
+      {% if user == post.author %}
+        <a href="{% url 'posts:post_detail' post_id %}">
+      <button type="submit" class="btn btn-primary">
+      Редактировать
+      </button>
         </a>
       {% endif %}
     </article>
