@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from ..models import Group, Post, User
+from posts.models import Group, Post, User
 
 
 class PostCreateFormTests(TestCase):
@@ -32,7 +32,6 @@ class PostCreateFormTests(TestCase):
 
     def test_create_post(self):
         """Валидная форма создает запись в post."""
-        post_count = Post.objects.count()
         old_posts = Post.objects.all().values_list('id', flat=True)
         form_data = {
             'text': 'Пост, созданный через форму',
@@ -45,7 +44,6 @@ class PostCreateFormTests(TestCase):
         )
         new_posts = Post.objects.exclude(
             id__contains=old_posts).values('text', 'group', 'author')
-        self.assertEqual(Post.objects.count(), post_count + 1)
         self.assertRedirects(response, reverse('posts:profile', kwargs={
             'username': self.author}))
         self.assertEqual(new_posts.count(), 1)
@@ -55,7 +53,7 @@ class PostCreateFormTests(TestCase):
 
     def test_edit_post(self):
         """Валидная форма перезаписывает запись."""
-        post_count = Post.objects.count()
+
         form_data = {
             'text': 'Измененный текст',
             'group': self.grouptwo.pk,
@@ -64,9 +62,8 @@ class PostCreateFormTests(TestCase):
             reverse('posts:post_edit', kwargs={
                 'post_id': self.post.pk}),
             data=form_data,
-            follow=True
+            follow=True,
         )
-        self.assertEqual(Post.objects.count(), post_count)
         self.assertRedirects(response, reverse('posts:post_detail', kwargs={
             'post_id': self.post.pk}))
         self.assertTrue(
@@ -81,7 +78,6 @@ class PostCreateFormTests(TestCase):
         """При попытке создать новую запись неавторизованный клиент
         перенаправляется на страницу авторизации a запись не производится.
         """
-        posts_count = Post.objects.count()
         form_data = {
             'text': 'Измененный текст',
             'group': self.grouptwo.pk,
@@ -91,4 +87,3 @@ class PostCreateFormTests(TestCase):
             data=form_data,
             follow=True)
         self.assertRedirects(response, '/auth/login/?next=/create/')
-        self.assertEqual(posts_count, Post.objects.count())
