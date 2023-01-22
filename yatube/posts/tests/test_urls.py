@@ -6,12 +6,12 @@ from django.urls import reverse
 from posts.models import Group, Post, User
 
 CONST_INDEX = reverse('posts:index')
-CONST_NEW_POST = reverse('posts:create')
+CONST_NEW_POST = reverse('posts:post_create')
 CONST_USER = 'TIGR'
 CONST_USER2 = 'monstr'
 CONST_AUTH = reverse('login')
 CONST_SLUG = 'test_group'
-CONST_GROUP_URL = reverse('posts:group', kwargs={'slug': CONST_SLUG})
+CONST_GROUP_URL = reverse('posts:group_list', kwargs={'slug': CONST_SLUG})
 CONST_PROFILE_URL = reverse('posts:profile', kwargs={'username': CONST_USER})
 CONST_LOGIN_CREATE = f'{CONST_AUTH}?next={CONST_NEW_POST}'
 
@@ -21,7 +21,7 @@ class UrlsTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create(username=CONST_USER,)
+        cls.user = User.objects.create(username=CONST_USER)
         cls.group = Group.objects.create(
             title='ТЕСТОВЫЙ ТАЙТЛ',
             slug=CONST_SLUG,
@@ -32,7 +32,7 @@ class UrlsTests(TestCase):
             author=cls.user,
             group=cls.group
         )
-        cls.user2 = User.objects.create(username=CONST_USER2,)
+        cls.user2 = User.objects.create(username=CONST_USER2)
         cls.POST_URL = reverse(
             'posts:post_detail',
             args=[cls.post.id])
@@ -44,9 +44,9 @@ class UrlsTests(TestCase):
     def setUp(self):
         self.guest = Client()
         self.author = Client()
-        self.author.force_login(self.user,)
+        self.author.force_login(self.user)
         self.another = Client()
-        self.another.force_login(self.user2,)
+        self.another.force_login(self.user2)
 
     def test_urls_uses_correct_template(self):
         template_urls_names = [
