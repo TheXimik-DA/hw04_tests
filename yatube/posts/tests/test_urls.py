@@ -9,73 +9,109 @@ from posts.models import Group, Post
 User = get_user_model()
 
 
-class PostURLTest(TestCase):
+REVERSE_URL_INDEX = reverse('posts:index')
+REVERSE_URL_GROUP = reverse('posts:group_list', args=['test_slug'])
+REVERSE_URL_AUTHOR_PROFILE = reverse('posts:profile', args=['tigr'])
+REVERSE_URL_CREATE_POST = reverse('posts:post_create')
+
+
+class PostURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.author = User.objects.create(
-            username='TheXimik_',
-            password='1!21%321',
-            email='tool@gmail.com',
-        )
+        cls.user = User.objects.create_user(username='mostr')
+        cls.author = User.objects.create_user(username='tigr')
         cls.group = Group.objects.create(
-            slug='slug_test',
+            title='Группа',
+            slug='test_slug',
+            description='Проверка описания'
         )
         cls.post = Post.objects.create(
-            author=cls.author,
-            group=cls.group,
             text='Тестовый текст',
+            author=cls.author,
+            group=cls.group
         )
+        cls.DETAIL_URL = reverse('posts:post_detail', args=[cls.post.id])
+        cls.EDIT_URL = reverse('posts:post_edit', args=[cls.post.id])
+        cls.TEMPLATE = {
+            REVERSE_URL_INDEX: 'posts/index.html',
+            REVERSE_URL_GROUP: 'posts/group_list.html',
+            REVERSE_URL_AUTHOR_PROFILE: 'posts/profile.html',
+            PostURLTests.DETAIL_URL: 'posts/post_detail.html',
+            PostURLTests.EDIT_URL: 'posts/create_post.html',
+            REVERSE_URL_CREATE_POST: 'posts/create_post.html',
+        }
 
     def setUp(self):
-        self.authorizated_client = Client()
-        self.authorizated_client.force_login(self.author)
-        self.nonauthorized_client = Client()
+        self.guest_client = Client()
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
+        self.author_client = Client()
+        self.author_client.force_login(PostURLTests.author)
 
-    def test_home_page(self):
-        """Главная страница доступна любому пользователю."""
-        response = self.nonauthorized_client.get('/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+    def test_http_statuses(self):
+        address_status_client = [
+            [REVERSE_URL_CREATE_POST, HTTPStatus.OK, self.authorized_client],
+            [REVERSE_URL_GROUP, HTTPStatus.OK, self.guest_client],
+            [REVERSE_URL_INDEX, HTTPStatus.OK, self.guest_client],
+            [REVERSE_URL_CREATE_POST, HTTPStatus.FOUND, self.guest_client],
+            [PostURLTests.DETAIL_URL, HTTPStatus.OK, self.guest_client],
+            [REVERSE_URL_AUTHOR_PROFILE, HTTPStatus.OK, self.guest_client],
+            [PostURLTests.EDIT_URL, HTTPStatus.FOUND, self.guest_client],
+            [
+                PostURLTests.EDIT_URL,
+                HTTPStatus.FOUND,
+                self.authorized_client,
+            ],
+            [PostURLTests.EDIT_URL, HTTPStatus.OK, self.author_client],
+        ]
+        for test in address_status_client:
+            adress, status, client = test
+            self.assertEqual(
+                client.get(adress).status_code,
+                status,
+                f'{adress} Возвращает другой статус, а не {status}',
+            )
 
-    def test_group_page(self):
-        """Страница группы доступна любому пользователю."""
-        response = self.nonauthorized_client.get('/group/slug_test/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_profile_page(self):
-        """Профильная страница пользователя доступна любому пользователю."""
-        response = self.nonauthorized_client.get('/profile/TheXimik_/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_post_detail(self):
-        """Страница поста доступна любому пользователю."""
-        response = self.nonauthorized_client.get('/posts/1/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_post_create(self):
-        """Cоздание поста доступно только авторизованному пользователю."""
-        response = self.authorizated_client.get(reverse('posts:post_create'))
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_post_edit(self):
-        """Страница редактирования поста доступно только его автору."""
-        response = self.authorizated_client.get('/posts/1/edit/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_urls_use_correct_template(self):
-        """URL-адрес использует корректный шаблон."""
-        templates_url_names = {
-            'posts/index.html': '/',
-            'posts/group_list.html': f'/group/{self.group.slug}/',
-            'posts/profile.html': f'/profile/{self.author}/',
-            'posts/post_detail.html': f'/posts/{self.post.id}/',
-        }
-        for template, adress in templates_url_names.items():
-            with self.subTest(adress=adress):
-                response = self.authorizated_client.get(adress)
-                self.assertTemplateUsed(response, template)
-
-    def test_unexisting_page_returns_404(self):
-        """Несуществующая страница вернёт ошибку 404."""
-        response = self.nonauthorized_client.get('/unexisting_page/')
+    def test_redirect_anonymous(self):
+        """Страница /Supermario_page/ не существует."""
+        response = self.authorized_client.get('/Supermario_page/')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+
+    def test_correct_template(self):
+        """URL-адрес использует соответствующий шаблон."""
+        for url, template in PostURLTests.TEMPLATE.items():
+            with self.subTest(url=url):
+                response = self.author_client.get(url)
+                self.assertTemplateUsed(
+                    response,
+                    template,
+                    f'Неверный шаблон - {template} для {url}',
+                )
+
+    def test_test_redirects(self):
+        """
+        Проверка перенаправления на страницу авторизации.
+        Авторизованного пользователя перенаправляют на страницу с постом.
+        """
+        address_redirect_client = [
+            [
+                REVERSE_URL_CREATE_POST,
+                f'/auth/login/?next={REVERSE_URL_CREATE_POST}',
+                self.guest_client,
+            ],
+            [
+                PostURLTests.EDIT_URL,
+                f'/auth/login/?next={PostURLTests.EDIT_URL}',
+                self.guest_client,
+            ],
+            [
+                PostURLTests.EDIT_URL,
+                PostURLTests.DETAIL_URL,
+                self.authorized_client,
+            ],
+        ]
+        for url, redirect_address, client in address_redirect_client:
+            with self.subTest(url=url, client=client):
+                response = client.get(url, follow=True)
+                self.assertRedirects(response, redirect_address)
