@@ -57,6 +57,11 @@ class PostURLTests(TestCase):
                     f'Неверный шаблон - {template} для {url}',
                 )
 
+    def test_redirect_anonymous(self):
+        """Cервер возвращает код 404, если страница не найдена."""
+        response = self.authorized_client.get('/Supermario_page/')
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
@@ -87,22 +92,6 @@ class PostURLTests(TestCase):
                 status,
                 f'{adress} Возвращает другой статус, а не {status}',
             )
-
-    def test_redirect_anonymous(self):
-        """Страница /Supermario_page/ не существует."""
-        response = self.authorized_client.get('/Supermario_page/')
-        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-
-    def test_correct_template(self):
-        """URL-адрес использует соответствующий шаблон."""
-        for url, template in PostURLTests.TEMPLATE.items():
-            with self.subTest(url=url):
-                response = self.author_client.get(url)
-                self.assertTemplateUsed(
-                    response,
-                    template,
-                    f'Неверный шаблон - {template} для {url}',
-                )
 
     def test_test_redirects(self):
         """
