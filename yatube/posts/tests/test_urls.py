@@ -31,8 +31,12 @@ class PostURLTests(TestCase):
             author=cls.author,
             group=cls.group
         )
-        cls.DETAIL_URL = reverse('posts:post_detail', args=[cls.post.id])
-        cls.EDIT_URL = reverse('posts:post_edit', args=[cls.post.id])
+        cls.DETAIL_URL = reverse(
+            'posts:post_detail', args=[cls.post.id]
+        )
+        cls.EDIT_URL = reverse(
+            'posts:post_edit', args=[cls.post.id]
+        )
         cls.TEMPLATE = {
             REVERSE_URL_INDEX: 'posts/index.html',
             REVERSE_URL_GROUP: 'posts/group_list.html',
@@ -42,6 +46,17 @@ class PostURLTests(TestCase):
             REVERSE_URL_CREATE_POST: 'posts/create_post.html',
         }
 
+    def test_correct_template(self):
+        """URL-адрес использует соответствующий шаблон."""
+        for url, template in PostURLTests.TEMPLATE.items():
+            with self.subTest(url=url):
+                response = self.author_client.get(url)
+                self.assertTemplateUsed(
+                    response,
+                    template,
+                    f'Неверный шаблон - {template} для {url}',
+                )
+
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
@@ -50,7 +65,7 @@ class PostURLTests(TestCase):
         self.author_client.force_login(PostURLTests.author)
 
     def test_http_statuses(self):
-        address_status_client = [
+        httpstatuses = [
             [REVERSE_URL_CREATE_POST, HTTPStatus.OK, self.authorized_client],
             [REVERSE_URL_GROUP, HTTPStatus.OK, self.guest_client],
             [REVERSE_URL_INDEX, HTTPStatus.OK, self.guest_client],
@@ -65,7 +80,7 @@ class PostURLTests(TestCase):
             ],
             [PostURLTests.EDIT_URL, HTTPStatus.OK, self.author_client],
         ]
-        for test in address_status_client:
+        for test in httpstatuses:
             adress, status, client = test
             self.assertEqual(
                 client.get(adress).status_code,
