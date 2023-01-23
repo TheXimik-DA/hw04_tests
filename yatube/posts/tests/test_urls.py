@@ -51,7 +51,7 @@ class PostURLTests(TestCase):
 
     def test_correct_template(self):
         """URL-адреса используют правильные шаблоны."""
-        url_templates_names = {
+        url_templates = {
             '/': 'posts/index.html',
             f'/profile/{self.author.username}/':
                 'posts/profile.html',
@@ -63,18 +63,18 @@ class PostURLTests(TestCase):
                 'posts/group_list.html',
             '/create/': 'posts/create_post.html',
         }
-        for reverse_name, template in url_templates_names.items():
+        for reverse_name, template in url_templates.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_author.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 
     def test_urls_redirect(self):
         """Страницы редиректов."""
-        urls_names = [
+        urls = [
             '/create/',
             f'/posts/{self.post.pk}/edit/',
         ]
-        for address in urls_names:
+        for address in urls:
             with self.subTest(address=address):
                 response = self.guest_client.get(address, follow=True)
                 self.assertRedirects(
@@ -92,6 +92,6 @@ class PostURLTests(TestCase):
         )
 
     def test_unexisting_page_404(self):
-        """Несуществующая страница отвечает ошибка 404."""
+        """Несуществующая страница отвечает: ошибка 404."""
         response = self.guest_client.get('/unexisting_page/')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
