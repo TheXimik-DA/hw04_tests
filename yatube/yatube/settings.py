@@ -14,6 +14,7 @@ ALLOWED_HOSTS = [
     'testserver',
 ]
 
+CSRF_FAILURE_VIEW = 'core.views.csrf_failure'
 
 INSTALLED_APPS = [
     'about.apps.AboutConfig',
