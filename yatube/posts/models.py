@@ -31,7 +31,12 @@ class Post(models.Model):
         related_name='posts',
         verbose_name='Автор поста',
     )
-
+    image = models.ImageField(
+        'Картинка',
+        help_text='Загрузите подходящую картинку',
+        upload_to='posts/',
+        blank=True,
+    )
     group = models.ForeignKey(
         'Group',
         on_delete=models.SET_NULL,
