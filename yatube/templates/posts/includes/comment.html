@@ -1,5 +1,4 @@
 {% load user_filters %}
-
 {% if user.is_authenticated %}
   <div class="card my-4">
     <form method="post"
@@ -15,8 +14,6 @@
     </form>
   </div>
 {% endif %}
-
-<!-- Комментарии -->
 {% for item in comments %}
   <div class="media card mb-4">
     <div class="media-body card-body">
