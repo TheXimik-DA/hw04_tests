@@ -7,6 +7,7 @@ from posts.views import (
     post_detail,
     post_edit,
     profile,
+    add_comment,
 )
 
 app_name = 'posts'
@@ -18,4 +19,5 @@ urlpatterns = [
     path('group/<slug:slug>/', group_posts, name='group_list'),
     path('profile/<str:username>/', profile, name='profile'),
     path('posts/<int:post_id>/', post_detail, name='post_detail'),
+    path('posts/<int:post_id>/comment/', add_comment, name='add_comment'),
 ]
