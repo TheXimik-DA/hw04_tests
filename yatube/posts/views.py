@@ -48,15 +48,13 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     posts = get_object_or_404(Post, pk=post_id)
-    comments = posts.comments.all()
     form = CommentForm(request.POST or None)
-    context = {
-        'posts': posts,
-        'author': posts.author,
-        'form': form,
-        'comments': comments,
-    }
-    return render(request, "posts/post_detail.html", context)
+    comments = posts.comments.all()
+    return render(
+        request,
+        'posts/post_detail.html',
+        {'posts': posts, 'form': form, 'comments': comments}
+    )
 
 
 @login_required
