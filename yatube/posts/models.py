@@ -22,8 +22,10 @@ class Post(models.Model):
         help_text='Введите текст поста'
     )
     pub_date = models.DateTimeField(
+        auto_now_add=True,
         verbose_name='Дата публикации',
-        auto_now_add=True
+        help_text='Введите дату в формате ДД-ММ-ГГ',
+        db_index=True,
     )
     author = models.ForeignKey(
         User,
@@ -84,3 +86,26 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text[:15]
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Подписчики'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Подписки'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_author_user_following',
+            )
+        ]
